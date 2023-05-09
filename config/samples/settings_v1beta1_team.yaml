@@ -1,0 +1,6 @@
+apiVersion: settings.github.com/v1beta1
+kind: Team
+metadata:
+  name: team-sample
+spec:
+  # TODO(user): Add fields here

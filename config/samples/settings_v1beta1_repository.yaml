@@ -1,0 +1,6 @@
+apiVersion: settings.github.com/v1beta1
+kind: Repository
+metadata:
+  name: repository-sample
+spec:
+  # TODO(user): Add fields here

@@ -1,0 +1,473 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: github-operator-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
+  name: repositories.settings.github.com
+spec:
+  group: settings.github.com
+  names:
+    kind: Repository
+    listKind: RepositoryList
+    plural: repositories
+    singular: repository
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: Repository is the Schema for the repositories API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: RepositorySpec defines the desired state of Repository
+            properties:
+              allowAutoMerge:
+                description: Either `true` to allow auto-merge on pull requests, or
+                  `false` to disallow auto-merge.
+                type: boolean
+              allowMergeCommit:
+                description: Either `true` to allow merging pull requests with a merge
+                  commit, or `false` to prevent merging pull requests with merge commits.
+                type: boolean
+              allowRebaseMerge:
+                description: Either `true` to allow merging pull requests with a merge
+                  commit, or `false` to prevent merging pull requests with merge commits.
+                type: boolean
+              allowSquashMerge:
+                description: Either `true` to allow squash-merging pull requests,
+                  or `false` to prevent squash-merging.
+                type: boolean
+              defaultBranch:
+                description: The default branch for this repository.
+                type: string
+              deleteBranchOnMerge:
+                description: Either `true` to allow automatically deleting head branches,
+                  when pull requests are merged, or `false` to prevent automatic deletion.
+                type: boolean
+              description:
+                description: A short description of the repository that will show
+                  up on GitHub
+                type: string
+              hasIssues:
+                description: Either `true` to enable issues for this repository, `false`
+                  to disable them.
+                type: boolean
+              hasPages:
+                description: Either `true` to enable pages for this repository, `false`
+                  to disable them.
+                type: boolean
+              hasProjects:
+                description: Either `true` to enable projects for this repository,
+                  or `false` to disable them.
+                type: boolean
+              hasWiki:
+                description: Either `true` to enable the wiki for this repository,
+                  `false` to disable it.
+                type: boolean
+              homepage:
+                description: A URL with more information about the repository
+                type: string
+              isTemplate:
+                description: Either `true` if its a template repo, false if its not
+                type: boolean
+              mergeCommitMessage:
+                description: 'Can be one of: PR_BODY, PR_TITLE, BLANK'
+                type: string
+              mergeCommitTitle:
+                description: 'Can be one of: PR_TITLE, MERGE_MESSAGE'
+                type: string
+              organization:
+                description: GitHub Org
+                type: string
+              private:
+                description: Either `true` to make the repository private, or `false`
+                  to make it public.
+                type: boolean
+              squashMergeCommitMessage:
+                description: 'Can be one of: PR_BODY, COMMIT_MESSAGES, BLANK'
+                type: string
+              squashMergeCommitTitle:
+                description: 'Can be one of: PR_TITLE, COMMIT_OR_PR_TITLE'
+                type: string
+              topics:
+                description: 'A list of topics to set on the repository - can alternatively
+                  set like this: [github, probot, new-topic, another-topic, topic-12]'
+                items:
+                  type: string
+                type: array
+            required:
+            - organization
+            type: object
+          status:
+            description: RepositoryStatus defines the observed state of Repository
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
+  name: teams.settings.github.com
+spec:
+  group: settings.github.com
+  names:
+    kind: Team
+    listKind: TeamList
+    plural: teams
+    singular: team
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: Team is the Schema for the teams API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TeamSpec defines the desired state of Team
+            properties:
+              description:
+                description: The description of the team.
+                type: string
+              maintainers:
+                description: List GitHub IDs for organization members who will become
+                  team maintainers.
+                items:
+                  type: string
+                type: array
+              organization:
+                description: GitHub Org
+                type: string
+              parentTeamId:
+                description: The ID of a team to set as the parent team.
+                format: int64
+                type: integer
+              privacy:
+                description: 'Can be one of: secret, closed'
+                type: string
+              repoNames:
+                description: The full name (e.g., "organization-name/repository-name")
+                  of repositories to add the team to.
+                items:
+                  type: string
+                type: array
+            type: object
+          status:
+            description: TeamStatus defines the observed state of Team
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: github-operator-controller-manager
+  namespace: github-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: github-operator-leader-election-role
+  namespace: github-operator-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: github-operator-manager-role
+rules:
+- apiGroups:
+  - settings.github.com
+  resources:
+  - repositories
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - settings.github.com
+  resources:
+  - repositories/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - settings.github.com
+  resources:
+  - repositories/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - settings.github.com
+  resources:
+  - teams
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - settings.github.com
+  resources:
+  - teams/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - settings.github.com
+  resources:
+  - teams/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: github-operator-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: github-operator-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: github-operator-leader-election-rolebinding
+  namespace: github-operator-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: github-operator-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: github-operator-controller-manager
+  namespace: github-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: github-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: github-operator-manager-role
+subjects:
+- kind: ServiceAccount
+  name: github-operator-controller-manager
+  namespace: github-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: github-operator-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: github-operator-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: github-operator-controller-manager
+  namespace: github-operator-system
+---
+apiVersion: v1
+data:
+  controller_manager_config.yaml: |
+    apiVersion: controller-runtime.sigs.k8s.io/v1alpha1
+    kind: ControllerManagerConfig
+    health:
+      healthProbeBindAddress: :8081
+    metrics:
+      bindAddress: 127.0.0.1:8080
+    webhook:
+      port: 9443
+    leaderElection:
+      leaderElect: true
+      resourceName: 762bbbb2.github.com
+    # leaderElectionReleaseOnCancel defines if the leader should step down volume
+    # when the Manager ends. This requires the binary to immediately end when the
+    # Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
+    # speeds up voluntary leader transitions as the new leader don't have to wait
+    # LeaseDuration time first.
+    # In the default scaffold provided, the program ends immediately after
+    # the manager stops, so would be fine to enable this option. However,
+    # if you are doing or is intended to do any operation such as perform cleanups
+    # after the manager stops then its usage might be unsafe.
+    # leaderElectionReleaseOnCancel: true
+kind: ConfigMap
+metadata:
+  name: github-operator-manager-config
+  namespace: github-operator-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: github-operator-controller-manager-metrics-service
+  namespace: github-operator-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: github-operator-controller-manager
+  namespace: github-operator-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --leader-elect
+        command:
+        - /manager
+        envFrom:
+        - secretRef:
+            name: github-operator-secret
+        image: hunterthompson/github-operator:latest
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: github-operator-controller-manager
+      terminationGracePeriodSeconds: 10
