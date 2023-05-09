@@ -24,6 +24,8 @@ jobs:
     needs:
     - test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v2
       - uses: go-semantic-release/action@v1
@@ -32,3 +34,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           changelog-generator-opt: "emojis=false"
           force-bump-patch-version: true
+          hooks: goreleaser
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
