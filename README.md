@@ -69,6 +69,13 @@ spec:
   squashMergeCommitMessage: "COMMIT_MESSAGES"
   mergeCommitTitle: "PR_TITLE"
   mergeCommitMessage: "PR_BODY"
+  repositoryCollaborators:
+    adminPermission:
+    - Hunter-Thompson1
+    pushPermission:
+    - Hunter-Thompson2
+    pullPermission:
+    - Hunter-Thompson3
 ```
 
 ## License
