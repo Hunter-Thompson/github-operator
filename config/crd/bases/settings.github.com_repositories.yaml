@@ -97,6 +97,21 @@ spec:
                 description: Either `true` to make the repository private, or `false`
                   to make it public.
                 type: boolean
+              repositoryCollaborators:
+                properties:
+                  adminPermission:
+                    items:
+                      type: string
+                    type: array
+                  pullPermission:
+                    items:
+                      type: string
+                    type: array
+                  pushPermission:
+                    items:
+                      type: string
+                    type: array
+                type: object
               squashMergeCommitMessage:
                 description: 'Can be one of: PR_BODY, COMMIT_MESSAGES, BLANK'
                 type: string

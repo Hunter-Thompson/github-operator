@@ -85,6 +85,11 @@ func (r *RepositoryReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
+	err = r.EditRepoCollaboraters(ctx, repo, reqLogger)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
 	return reconcile.Result{}, nil
 }
 

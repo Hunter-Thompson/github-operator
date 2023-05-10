@@ -68,6 +68,14 @@ type RepositorySpec struct {
 	MergeCommitTitle *string `json:"mergeCommitTitle,omitempty"`
 	// Can be one of: PR_BODY, PR_TITLE, BLANK
 	MergeCommitMessage *string `json:"mergeCommitMessage,omitempty"`
+
+	RepositoryCollaborators *RepositoryCollaborators `json:"repositoryCollaborators,omitempty"`
+}
+
+type RepositoryCollaborators struct {
+	PushPermission  []string `json:"pushPermission,omitempty"`
+	PullPermission  []string `json:"pullPermission,omitempty"`
+	AdminPermission []string `json:"adminPermission,omitempty"`
 }
 
 // RepositoryStatus defines the observed state of Repository
