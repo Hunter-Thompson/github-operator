@@ -1,0 +1,20 @@
+# permissions for end users to view inviteusers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: inviteuser-viewer-role
+rules:
+- apiGroups:
+  - settings.github.com
+  resources:
+  - inviteusers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - settings.github.com
+  resources:
+  - inviteusers/status
+  verbs:
+  - get

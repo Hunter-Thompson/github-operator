@@ -1,0 +1,10 @@
+apiVersion: settings.github.com/v1beta1
+kind: InviteUser
+metadata:
+  name: inviteuser-sample
+spec:
+  organization: "octocat"
+  users:
+    - username: Hunter-Thompson
+      email: aatman@auroville.org.in
+

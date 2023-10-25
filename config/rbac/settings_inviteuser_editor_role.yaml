@@ -1,0 +1,24 @@
+# permissions for end users to edit inviteusers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: inviteuser-editor-role
+rules:
+- apiGroups:
+  - settings.github.com
+  resources:
+  - inviteusers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - settings.github.com
+  resources:
+  - inviteusers/status
+  verbs:
+  - get
