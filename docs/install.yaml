@@ -11,6 +11,64 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
+  name: inviteusers.settings.github.com
+spec:
+  group: settings.github.com
+  names:
+    kind: InviteUser
+    listKind: InviteUserList
+    plural: inviteusers
+    singular: inviteuser
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: InviteUser is the Schema for the inviteusers API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: InviteUserSpec defines the desired state of InviteUser
+            properties:
+              organization:
+                description: GitHub Org
+                type: string
+              users:
+                items:
+                  properties:
+                    email:
+                      type: string
+                    username:
+                      type: string
+                  type: object
+                type: array
+            type: object
+          status:
+            description: InviteUserStatus defines the observed state of InviteUser
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
   name: repositories.settings.github.com
 spec:
   group: settings.github.com
@@ -263,6 +321,32 @@ metadata:
   creationTimestamp: null
   name: github-operator-manager-role
 rules:
+- apiGroups:
+  - settings.github.com
+  resources:
+  - inviteusers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - settings.github.com
+  resources:
+  - inviteusers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - settings.github.com
+  resources:
+  - inviteusers/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - settings.github.com
   resources:
