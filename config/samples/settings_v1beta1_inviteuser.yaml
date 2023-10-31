@@ -2,6 +2,7 @@ apiVersion: settings.github.com/v1beta1
 kind: InviteUser
 metadata:
   name: inviteuser-sample
+  namespace: github-operator-system
 spec:
   organization: "octocat"
   users:
