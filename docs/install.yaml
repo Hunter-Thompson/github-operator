@@ -11,6 +11,143 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
+  name: globalrepositories.settings.github.com
+spec:
+  group: settings.github.com
+  names:
+    kind: GlobalRepository
+    listKind: GlobalRepositoryList
+    plural: globalrepositories
+    singular: globalrepository
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: GlobalRepository is the Schema for the globalrepositories API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: GlobalRepositorySpec defines the desired state of GlobalRepository
+            properties:
+              allowAutoMerge:
+                description: Either `true` to allow auto-merge on pull requests, or
+                  `false` to disallow auto-merge.
+                type: boolean
+              allowMergeCommit:
+                description: Either `true` to allow merging pull requests with a merge
+                  commit, or `false` to prevent merging pull requests with merge commits.
+                type: boolean
+              allowRebaseMerge:
+                description: Either `true` to allow merging pull requests with a merge
+                  commit, or `false` to prevent merging pull requests with merge commits.
+                type: boolean
+              allowSquashMerge:
+                description: Either `true` to allow squash-merging pull requests,
+                  or `false` to prevent squash-merging.
+                type: boolean
+              defaultBranch:
+                description: The default branch for this repository.
+                type: string
+              deleteBranchOnMerge:
+                description: Either `true` to allow automatically deleting head branches,
+                  when pull requests are merged, or `false` to prevent automatic deletion.
+                type: boolean
+              description:
+                description: A short description of the repository that will show
+                  up on GitHub
+                type: string
+              hasIssues:
+                description: Either `true` to enable issues for this repository, `false`
+                  to disable them.
+                type: boolean
+              hasPages:
+                description: Either `true` to enable pages for this repository, `false`
+                  to disable them.
+                type: boolean
+              hasProjects:
+                description: Either `true` to enable projects for this repository,
+                  or `false` to disable them.
+                type: boolean
+              hasWiki:
+                description: Either `true` to enable the wiki for this repository,
+                  `false` to disable it.
+                type: boolean
+              homepage:
+                description: A URL with more information about the repository
+                type: string
+              isTemplate:
+                description: Either `true` if its a template repo, false if its not
+                type: boolean
+              mergeCommitMessage:
+                description: 'Can be one of: PR_BODY, PR_TITLE, BLANK'
+                type: string
+              mergeCommitTitle:
+                description: 'Can be one of: PR_TITLE, MERGE_MESSAGE'
+                type: string
+              organization:
+                description: GitHub Org
+                type: string
+              private:
+                description: Either `true` to make the repository private, or `false`
+                  to make it public.
+                type: boolean
+              repositoryCollaborators:
+                properties:
+                  adminPermission:
+                    items:
+                      type: string
+                    type: array
+                  pullPermission:
+                    items:
+                      type: string
+                    type: array
+                  pushPermission:
+                    items:
+                      type: string
+                    type: array
+                type: object
+              squashMergeCommitMessage:
+                description: 'Can be one of: PR_BODY, COMMIT_MESSAGES, BLANK'
+                type: string
+              squashMergeCommitTitle:
+                description: 'Can be one of: PR_TITLE, COMMIT_OR_PR_TITLE'
+                type: string
+              topics:
+                description: 'A list of topics to set on the repository - can alternatively
+                  set like this: [github, probot, new-topic, another-topic, topic-12]'
+                items:
+                  type: string
+                type: array
+            required:
+            - organization
+            type: object
+          status:
+            description: GlobalRepositoryStatus defines the observed state of GlobalRepository
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
   name: inviteusers.settings.github.com
 spec:
   group: settings.github.com
@@ -321,6 +458,32 @@ metadata:
   creationTimestamp: null
   name: github-operator-manager-role
 rules:
+- apiGroups:
+  - settings.github.com
+  resources:
+  - globalrepositories
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - settings.github.com
+  resources:
+  - globalrepositories/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - settings.github.com
+  resources:
+  - globalrepositories/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - settings.github.com
   resources:
