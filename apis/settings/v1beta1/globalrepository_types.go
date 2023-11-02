@@ -23,8 +23,8 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// RepositorySpec defines the desired state of Repository
-type RepositorySpec struct {
+// GlobalRepositorySpec defines the desired state of GlobalRepository
+type GlobalRepositorySpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -72,14 +72,8 @@ type RepositorySpec struct {
 	RepositoryCollaborators *RepositoryCollaborators `json:"repositoryCollaborators,omitempty"`
 }
 
-type RepositoryCollaborators struct {
-	PushPermission  []string `json:"pushPermission,omitempty"`
-	PullPermission  []string `json:"pullPermission,omitempty"`
-	AdminPermission []string `json:"adminPermission,omitempty"`
-}
-
-// RepositoryStatus defines the observed state of Repository
-type RepositoryStatus struct {
+// GlobalRepositoryStatus defines the observed state of GlobalRepository
+type GlobalRepositoryStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -87,24 +81,24 @@ type RepositoryStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Repository is the Schema for the repositories API
-type Repository struct {
+// GlobalRepository is the Schema for the globalrepositories API
+type GlobalRepository struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RepositorySpec   `json:"spec,omitempty"`
-	Status RepositoryStatus `json:"status,omitempty"`
+	Spec   GlobalRepositorySpec   `json:"spec,omitempty"`
+	Status GlobalRepositoryStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// RepositoryList contains a list of Repository
-type RepositoryList struct {
+// GlobalRepositoryList contains a list of GlobalRepository
+type GlobalRepositoryList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Repository `json:"items"`
+	Items           []GlobalRepository `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Repository{}, &RepositoryList{})
+	SchemeBuilder.Register(&GlobalRepository{}, &GlobalRepositoryList{})
 }

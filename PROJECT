@@ -32,4 +32,13 @@ resources:
   kind: InviteUser
   path: github.com/Hunter-Thompson/github-operator/apis/settings/v1beta1
   version: v1beta1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: github.com
+  group: settings
+  kind: GlobalRepository
+  path: github.com/Hunter-Thompson/github-operator/apis/settings/v1beta1
+  version: v1beta1
 version: "3"

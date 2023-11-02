@@ -18,7 +18,6 @@ package settings
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -30,33 +29,34 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	"github.com/Hunter-Thompson/github-operator/apis/settings/v1beta1"
 	settingsv1beta1 "github.com/Hunter-Thompson/github-operator/apis/settings/v1beta1"
 )
 
-// InviteUserReconciler reconciles a InviteUser object
-type InviteUserReconciler struct {
+// GlobalRepositoryReconciler reconciles a GlobalRepository object
+type GlobalRepositoryReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=settings.github.com,resources=inviteusers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=settings.github.com,resources=inviteusers/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=settings.github.com,resources=inviteusers/finalizers,verbs=update
+//+kubebuilder:rbac:groups=settings.github.com,resources=globalrepositories,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=settings.github.com,resources=globalrepositories/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=settings.github.com,resources=globalrepositories/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the InviteUser object against the actual cluster state, and then
+// the GlobalRepository object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
-func (r *InviteUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *GlobalRepositoryReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	reqLogger := log.FromContext(ctx)
 
-	iv := &settingsv1beta1.InviteUser{}
-	err := r.Client.Get(ctx, req.NamespacedName, iv)
+	gr := &v1beta1.GlobalRepository{}
+	err := r.Client.Get(ctx, req.NamespacedName, gr)
 	if err != nil && k8sErrors.IsNotFound(err) {
 		// Request object not found, could have been deleted after reconcile
 		// request. Owned objects are automatically garbage collected.
@@ -65,30 +65,18 @@ func (r *InviteUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return reconcile.Result{}, err
 	}
 
-	for _, user := range iv.Spec.Users {
-		userExists, err := r.UserExists(ctx, iv, user.Username, reqLogger)
+	repos, err := listAllRepos(ctx, gr.Spec.Organization, reqLogger)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	for _, repo := range repos {
+		err := r.EditRepoSettings(ctx, gr, repo.GetName(), reqLogger)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 
-		if userExists {
-			l := fmt.Sprintf("%s | %s already part of org", user.Username, user.Email)
-			reqLogger.Info(l)
-			continue
-		}
-
-		userInviteExists, err := r.UserInviteExists(ctx, iv, user.Username, user.Email, reqLogger)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-
-		if userInviteExists {
-			l := fmt.Sprintf("%s | %s already has a pending invitation", user.Username, user.Email)
-			reqLogger.Info(l)
-			continue
-		}
-
-		err = r.InviteUser(ctx, iv, user.Email, reqLogger)
+		err = r.EditRepoCollaboraters(ctx, gr, repo.GetName(), reqLogger)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -98,9 +86,9 @@ func (r *InviteUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *InviteUserReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *GlobalRepositoryReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&settingsv1beta1.InviteUser{}).
+		For(&settingsv1beta1.GlobalRepository{}).
 		WithOptions(controller.Options{
 			RateLimiter: workqueue.NewItemExponentialFailureRateLimiter(time.Minute*1, time.Minute*5),
 		}).

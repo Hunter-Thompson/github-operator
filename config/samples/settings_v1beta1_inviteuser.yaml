@@ -2,9 +2,8 @@ apiVersion: settings.github.com/v1beta1
 kind: InviteUser
 metadata:
   name: inviteuser-sample
-  namespace: github-operator-system
 spec:
-  organization: "octocat"
+  organization: "temp-org-1"
   users:
     - username: Hunter-Thompson
       email: aatman@auroville.org.in

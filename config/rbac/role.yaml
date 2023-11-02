@@ -8,6 +8,32 @@ rules:
 - apiGroups:
   - settings.github.com
   resources:
+  - globalrepositories
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - settings.github.com
+  resources:
+  - globalrepositories/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - settings.github.com
+  resources:
+  - globalrepositories/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - settings.github.com
+  resources:
   - inviteusers
   verbs:
   - create

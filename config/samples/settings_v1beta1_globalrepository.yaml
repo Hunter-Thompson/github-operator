@@ -1,0 +1,14 @@
+apiVersion: settings.github.com/v1beta1
+kind: GlobalRepository
+metadata:
+  name: globalrepo-sample
+spec:
+  organization: temp-org-1
+  description: "asd"
+  repositoryCollaborators:
+    adminPermission:
+    - Hunter-Thompson
+    pushPermission:
+    - Hunter-Thompson
+    pullPermission:
+    - Hunter-Thompson

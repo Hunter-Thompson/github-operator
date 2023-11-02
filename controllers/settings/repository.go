@@ -283,3 +283,25 @@ func addPushPerm(ctx context.Context, repo *settingsv1beta1.Repository, ghClient
 
 	return nil
 }
+
+func listAllRepos(ctx context.Context, org string, reqLogger logr.Logger) ([]*github.Repository, error) {
+	ghClient := gh.Login(ctx)
+	opt := &github.RepositoryListByOrgOptions{
+		ListOptions: github.ListOptions{PerPage: 10},
+	}
+
+	var allRepos []*github.Repository
+	for {
+		repos, resp, err := ghClient.Repositories.ListByOrg(ctx, org, opt)
+		if err != nil {
+			return nil, err
+		}
+		allRepos = append(allRepos, repos...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	return allRepos, nil
+}

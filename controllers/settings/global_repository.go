@@ -1,0 +1,225 @@
+package settings
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	settingsv1beta1 "github.com/Hunter-Thompson/github-operator/apis/settings/v1beta1"
+	"github.com/Hunter-Thompson/github-operator/pkg/gh"
+	"github.com/go-logr/logr"
+	"github.com/google/go-github/v52/github"
+)
+
+func (r *GlobalRepositoryReconciler) EditRepoSettings(ctx context.Context, gr *settingsv1beta1.GlobalRepository, repoName string, reqLogger logr.Logger) error {
+	ghClient := gh.Login(ctx)
+
+	edit := &github.Repository{
+		Name:                &repoName,
+		Description:         gr.GetDescription(),
+		Homepage:            gr.GetHomepage(),
+		Topics:              gr.GetTopics(),
+		HasIssues:           gr.GetHasIssues(),
+		HasPages:            gr.GetHasPages(),
+		HasProjects:         gr.GetHasProjects(),
+		HasWiki:             gr.GetHasWiki(),
+		Private:             gr.GetPrivate(),
+		AllowSquashMerge:    gr.GetAllowSquashMerge(),
+		AllowMergeCommit:    gr.GetAllowMergeCommit(),
+		AllowRebaseMerge:    gr.GetAllowRebaseMerge(),
+		AllowAutoMerge:      gr.GetAllowAutoMerge(),
+		DeleteBranchOnMerge: gr.GetDeleteBranchOnMerge(),
+		IsTemplate:          gr.GetIsTemplate(),
+	}
+
+	if gr.Spec.SquashMergeCommitTitle != nil {
+		edit.SquashMergeCommitTitle = gr.Spec.SquashMergeCommitTitle
+	}
+
+	if gr.Spec.SquashMergeCommitMessage != nil {
+		edit.SquashMergeCommitMessage = gr.Spec.SquashMergeCommitMessage
+	}
+
+	if gr.Spec.MergeCommitTitle != nil {
+		edit.MergeCommitTitle = gr.Spec.MergeCommitTitle
+	}
+
+	if gr.Spec.MergeCommitMessage != nil {
+		edit.MergeCommitMessage = gr.Spec.MergeCommitMessage
+	}
+
+	_, _, err := ghClient.Repositories.Edit(ctx, gr.Spec.Organization, repoName, edit)
+	if err != nil {
+		return fmt.Errorf("failed to edit repo: %w", err)
+	}
+
+	reqLogger.Info("edited repository")
+	return nil
+}
+
+func (r *GlobalRepositoryReconciler) EditRepoCollaboraters(ctx context.Context, gr *settingsv1beta1.GlobalRepository, repoName string, reqLogger logr.Logger) error {
+	ghClient := gh.Login(ctx)
+
+	if gr.Spec.RepositoryCollaborators == nil {
+		return nil
+	}
+
+	opt := &github.ListMembersOptions{
+		ListOptions: github.ListOptions{PerPage: 10},
+	}
+
+	var allMembers []*github.User
+	for {
+		users, resp, err := ghClient.Organizations.ListMembers(ctx, gr.Spec.Organization, opt)
+		if err != nil {
+			return err
+		}
+		allMembers = append(allMembers, users...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	for _, adminUser := range gr.Spec.RepositoryCollaborators.AdminPermission {
+		err := addGlobalAdminPerm(ctx, gr, repoName, ghClient, adminUser, allMembers, reqLogger)
+		if err != nil {
+			return fmt.Errorf("failed to addAdminPerm: %w", err)
+		}
+	}
+
+	for _, pullUser := range gr.Spec.RepositoryCollaborators.PullPermission {
+		err := addGlobalPullPerm(ctx, gr, repoName, ghClient, pullUser, allMembers, reqLogger)
+		if err != nil {
+			return fmt.Errorf("failed to addPullPerm: %w", err)
+		}
+	}
+
+	for _, pushUser := range gr.Spec.RepositoryCollaborators.PushPermission {
+		err := addGlobalPushPerm(ctx, gr, repoName, ghClient, pushUser, allMembers, reqLogger)
+		if err != nil {
+			return fmt.Errorf("failed to addPushPerm: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func addGlobalAdminPerm(ctx context.Context, gr *settingsv1beta1.GlobalRepository, repoName string, ghClient *github.Client, adminUser string, allMembers []*github.User, reqLogger logr.Logger) error {
+	permLevel, _, err := ghClient.Repositories.GetPermissionLevel(ctx, gr.Spec.Organization, repoName, adminUser)
+	if err != nil {
+		if strings.Contains(err.Error(), "is not a user []") {
+			reqLogger.Error(err, "not a user")
+			return nil
+		}
+		return fmt.Errorf("failed to get perm level for repo: %w", err)
+	}
+
+	if permLevel.GetPermission() == "admin" {
+		reqLogger.Info(adminUser + " already has admin permission")
+		return nil
+	}
+
+	add := false
+
+	for _, member := range allMembers {
+		// only add if user is actually a part of the org
+		if member.GetLogin() == adminUser {
+			add = true
+			break
+		}
+	}
+
+	if add {
+		_, _, err = ghClient.Repositories.AddCollaborator(ctx, gr.Spec.Organization, repoName, adminUser, &github.RepositoryAddCollaboratorOptions{
+			Permission: "admin",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add admin collaborator for repo: %w", err)
+		}
+		reqLogger.Info("gave " + adminUser + " admin permission")
+	} else {
+		reqLogger.Info(adminUser + " is not a part of the " + gr.Spec.Organization + " org")
+	}
+
+	return nil
+}
+
+func addGlobalPullPerm(ctx context.Context, gr *settingsv1beta1.GlobalRepository, repoName string, ghClient *github.Client, pullUser string, allMembers []*github.User, reqLogger logr.Logger) error {
+	permLevel, _, err := ghClient.Repositories.GetPermissionLevel(ctx, gr.Spec.Organization, repoName, pullUser)
+	if err != nil {
+		if strings.Contains(err.Error(), "is not a user []") {
+			reqLogger.Error(err, "not a user")
+			return nil
+		}
+		return fmt.Errorf("failed to get perm level for repo: %w", err)
+	}
+
+	if permLevel.GetPermission() == "read" || permLevel.GetPermission() == "admin" || permLevel.GetPermission() == "write" {
+		reqLogger.Info(pullUser + " already has read permission")
+		return nil
+	}
+
+	add := false
+
+	for _, member := range allMembers {
+		// only add if user is actually a part of the org
+		if member.GetLogin() == pullUser {
+			add = true
+			break
+		}
+	}
+
+	if add {
+		_, _, err = ghClient.Repositories.AddCollaborator(ctx, gr.Spec.Organization, repoName, pullUser, &github.RepositoryAddCollaboratorOptions{
+			Permission: "pull",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add pull collaborator for repo: %w", err)
+		}
+		reqLogger.Info("gave " + pullUser + " pull permission")
+	} else {
+		reqLogger.Info(pullUser + " is not a part of the " + gr.Spec.Organization + " org")
+	}
+	return nil
+}
+
+func addGlobalPushPerm(ctx context.Context, gr *settingsv1beta1.GlobalRepository, repoName string, ghClient *github.Client, pushUser string, allMembers []*github.User, reqLogger logr.Logger) error {
+	permLevel, _, err := ghClient.Repositories.GetPermissionLevel(ctx, gr.Spec.Organization, repoName, pushUser)
+	if err != nil {
+		if strings.Contains(err.Error(), "is not a user []") {
+			reqLogger.Error(err, "not a user")
+			return nil
+		}
+		return fmt.Errorf("failed to get perm level for repo: %w", err)
+	}
+
+	if permLevel.GetPermission() == "admin" || permLevel.GetPermission() == "write" {
+		reqLogger.Info(pushUser + " already has push permission")
+		return nil
+	}
+
+	add := false
+
+	for _, member := range allMembers {
+		// only add if user is actually a part of the org
+		if member.GetLogin() == pushUser {
+			add = true
+			break
+		}
+	}
+
+	if add {
+		_, _, err = ghClient.Repositories.AddCollaborator(ctx, gr.Spec.Organization, repoName, pushUser, &github.RepositoryAddCollaboratorOptions{
+			Permission: "push",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add push collaborator for repo: %w", err)
+		}
+		reqLogger.Info("gave " + pushUser + " push permission")
+	} else {
+		reqLogger.Info(pushUser + " is not a part of the " + gr.Spec.Organization + " org")
+	}
+
+	return nil
+}
