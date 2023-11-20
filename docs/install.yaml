@@ -118,6 +118,29 @@ spec:
                       type: string
                     type: array
                 type: object
+              repositoryTeams:
+                properties:
+                  adminPermission:
+                    items:
+                      type: string
+                    type: array
+                  maintainPermission:
+                    items:
+                      type: string
+                    type: array
+                  pullPermission:
+                    items:
+                      type: string
+                    type: array
+                  pushPermission:
+                    items:
+                      type: string
+                    type: array
+                  triagePermission:
+                    items:
+                      type: string
+                    type: array
+                type: object
               squashMergeCommitMessage:
                 description: 'Can be one of: PR_BODY, COMMIT_MESSAGES, BLANK'
                 type: string
@@ -703,7 +726,7 @@ spec:
         envFrom:
         - secretRef:
             name: github-operator-secret
-        image: hunterthompson/github-operator:v1.1.0
+        image: hunterthompson/github-operator:v1.4.0
         livenessProbe:
           httpGet:
             path: /healthz
