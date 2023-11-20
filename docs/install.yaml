@@ -726,7 +726,7 @@ spec:
         envFrom:
         - secretRef:
             name: github-operator-secret
-        image: hunterthompson/github-operator:v1.3.0
+        image: hunterthompson/github-operator:v1.4.0
         livenessProbe:
           httpGet:
             path: /healthz
