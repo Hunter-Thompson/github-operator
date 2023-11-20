@@ -68,37 +68,53 @@ func (r *GlobalRepositoryReconciler) EditRepoTeams(ctx context.Context, gr *sett
 	}
 
 	ghClient := gh.Login(ctx)
+	opt := &github.ListOptions{
+		PerPage: 10,
+	}
+
+	allTeams := []*github.Team{}
+	for {
+		repoTeam, resp, err := ghClient.Repositories.ListTeams(ctx, gr.Spec.Organization, repoName, opt)
+		if err != nil {
+			return err
+		}
+		allTeams = append(allTeams, repoTeam...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
 
 	for _, adminTeam := range gr.Spec.RepositoryTeams.AdminPermission {
-		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, adminTeam, "admin", reqLogger)
+		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, adminTeam, allTeams, "admin", reqLogger)
 		if err != nil {
 			return fmt.Errorf("failed to add admin perm for %s to %s", adminTeam, repoName)
 		}
 	}
 
 	for _, pullTeam := range gr.Spec.RepositoryTeams.PullPermission {
-		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, pullTeam, "pull", reqLogger)
+		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, pullTeam, allTeams, "pull", reqLogger)
 		if err != nil {
 			return fmt.Errorf("failed to add pull perm for %s to %s", pullTeam, repoName)
 		}
 	}
 
 	for _, pushTeam := range gr.Spec.RepositoryTeams.PushPermission {
-		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, pushTeam, "push", reqLogger)
+		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, pushTeam, allTeams, "push", reqLogger)
 		if err != nil {
 			return fmt.Errorf("failed to add push perm for %s to %s", pushTeam, repoName)
 		}
 	}
 
 	for _, maintainTeam := range gr.Spec.RepositoryTeams.MaintainPermission {
-		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, maintainTeam, "maintain", reqLogger)
+		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, maintainTeam, allTeams, "maintain", reqLogger)
 		if err != nil {
 			return fmt.Errorf("failed to add maintain perm for %s to %s", maintainTeam, repoName)
 		}
 	}
 
 	for _, triageTeam := range gr.Spec.RepositoryTeams.TriagePermission {
-		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, triageTeam, "triage", reqLogger)
+		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, triageTeam, allTeams, "triage", reqLogger)
 		if err != nil {
 			return fmt.Errorf("failed to add triage perm for %s to %s", triageTeam, repoName)
 		}
@@ -107,15 +123,29 @@ func (r *GlobalRepositoryReconciler) EditRepoTeams(ctx context.Context, gr *sett
 	return nil
 }
 
-func addTeamToRepoPerm(ctx context.Context, gr *settingsv1beta1.GlobalRepository, repoName string, ghClient *github.Client, team string, perm string, reqLogger logr.Logger) error {
+func addTeamToRepoPerm(ctx context.Context, gr *settingsv1beta1.GlobalRepository, repoName string, ghClient *github.Client, team string, allTeams []*github.Team, perm string, reqLogger logr.Logger) error {
+	for _, repoTeam := range allTeams {
+		if repoTeam.GetName() == team {
+			if checkTeamPerm(repoTeam, perm) {
+				l := fmt.Sprintf("%s already has %s perm", team, perm)
+				reqLogger.Info(l)
+				return nil
+			}
+		}
+	}
+
 	_, err := ghClient.Teams.AddTeamRepoBySlug(ctx, gr.Spec.Organization, team, gr.Spec.Organization, repoName, &github.TeamAddTeamRepoOptions{
 		Permission: perm,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to add perm for team for repo: %w", err)
 	}
-	reqLogger.Info("gave " + team + "" + perm + " permission")
+	reqLogger.Info("gave " + team + " " + perm + " permission")
 	return nil
+}
+
+func checkTeamPerm(team *github.Team, perm string) bool {
+	return team.GetPermission() == perm
 }
 
 func (r *GlobalRepositoryReconciler) EditRepoCollaboraters(ctx context.Context, gr *settingsv1beta1.GlobalRepository, repoName string, reqLogger logr.Logger) error {
