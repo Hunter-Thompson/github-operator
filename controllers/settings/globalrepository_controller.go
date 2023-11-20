@@ -80,6 +80,11 @@ func (r *GlobalRepositoryReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		if err != nil {
 			return reconcile.Result{}, err
 		}
+
+		err = r.EditRepoTeams(ctx, gr, repo.GetName(), reqLogger)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	return ctrl.Result{}, nil

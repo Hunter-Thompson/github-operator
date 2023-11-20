@@ -70,6 +70,15 @@ type GlobalRepositorySpec struct {
 	MergeCommitMessage *string `json:"mergeCommitMessage,omitempty"`
 
 	RepositoryCollaborators *RepositoryCollaborators `json:"repositoryCollaborators,omitempty"`
+	RepositoryTeams         *RepositoryTeams         `json:"repositoryTeams,omitempty"`
+}
+
+type RepositoryTeams struct {
+	PushPermission     []string `json:"pushPermission,omitempty"`
+	PullPermission     []string `json:"pullPermission,omitempty"`
+	AdminPermission    []string `json:"adminPermission,omitempty"`
+	MaintainPermission []string `json:"maintainPermission,omitempty"`
+	TriagePermission   []string `json:"triagePermission,omitempty"`
 }
 
 // GlobalRepositoryStatus defines the observed state of GlobalRepository
