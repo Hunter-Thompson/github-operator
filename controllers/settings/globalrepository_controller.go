@@ -71,6 +71,9 @@ func (r *GlobalRepositoryReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	for _, repo := range repos {
+		if repo.GetArchived() {
+			continue
+		}
 		err := r.EditRepoSettings(ctx, gr, repo.GetName(), reqLogger)
 		if err != nil {
 			return reconcile.Result{}, err
