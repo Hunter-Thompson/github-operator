@@ -79,28 +79,28 @@ func (r *GlobalRepositoryReconciler) EditRepoTeams(ctx context.Context, gr *sett
 	for _, pullTeam := range gr.Spec.RepositoryTeams.PullPermission {
 		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, pullTeam, "pull", reqLogger)
 		if err != nil {
-			return fmt.Errorf("failed to add admin perm for %s to %s", pullTeam, repoName)
+			return fmt.Errorf("failed to add pull perm for %s to %s", pullTeam, repoName)
 		}
 	}
 
 	for _, pushTeam := range gr.Spec.RepositoryTeams.PushPermission {
 		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, pushTeam, "push", reqLogger)
 		if err != nil {
-			return fmt.Errorf("failed to add admin perm for %s to %s", pushTeam, repoName)
+			return fmt.Errorf("failed to add push perm for %s to %s", pushTeam, repoName)
 		}
 	}
 
 	for _, maintainTeam := range gr.Spec.RepositoryTeams.MaintainPermission {
 		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, maintainTeam, "maintain", reqLogger)
 		if err != nil {
-			return fmt.Errorf("failed to add admin perm for %s to %s", maintainTeam, repoName)
+			return fmt.Errorf("failed to add maintain perm for %s to %s", maintainTeam, repoName)
 		}
 	}
 
 	for _, triageTeam := range gr.Spec.RepositoryTeams.TriagePermission {
 		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, triageTeam, "triage", reqLogger)
 		if err != nil {
-			return fmt.Errorf("failed to add admin perm for %s to %s", triageTeam, repoName)
+			return fmt.Errorf("failed to add triage perm for %s to %s", triageTeam, repoName)
 		}
 	}
 
