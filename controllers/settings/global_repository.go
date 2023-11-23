@@ -92,10 +92,10 @@ func (r *GlobalRepositoryReconciler) EditRepoTeams(ctx context.Context, gr *sett
 		}
 	}
 
-	for _, pullTeam := range gr.Spec.RepositoryTeams.PullPermission {
-		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, pullTeam, allTeams, "pull", reqLogger)
+	for _, maintainTeam := range gr.Spec.RepositoryTeams.MaintainPermission {
+		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, maintainTeam, allTeams, "maintain", reqLogger)
 		if err != nil {
-			return fmt.Errorf("failed to add pull perm for %s to %s", pullTeam, repoName)
+			return fmt.Errorf("failed to add maintain perm for %s to %s", maintainTeam, repoName)
 		}
 	}
 
@@ -106,10 +106,10 @@ func (r *GlobalRepositoryReconciler) EditRepoTeams(ctx context.Context, gr *sett
 		}
 	}
 
-	for _, maintainTeam := range gr.Spec.RepositoryTeams.MaintainPermission {
-		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, maintainTeam, allTeams, "maintain", reqLogger)
+	for _, pullTeam := range gr.Spec.RepositoryTeams.PullPermission {
+		err := addTeamToRepoPerm(ctx, gr, repoName, ghClient, pullTeam, allTeams, "pull", reqLogger)
 		if err != nil {
-			return fmt.Errorf("failed to add maintain perm for %s to %s", maintainTeam, repoName)
+			return fmt.Errorf("failed to add pull perm for %s to %s", pullTeam, repoName)
 		}
 	}
 

@@ -148,10 +148,10 @@ func (r *RepositoryReconciler) EditRepoCollaboraters(ctx context.Context, repo *
 		}
 	}
 
-	for _, pullUser := range repo.Spec.RepositoryCollaborators.PullPermission {
-		err := addPullPerm(ctx, repo, ghClient, pullUser, allMembers, reqLogger)
+	for _, maintainUser := range repo.Spec.RepositoryCollaborators.MaintainPermission {
+		err := addMaintainPerm(ctx, repo, ghClient, maintainUser, allMembers, reqLogger)
 		if err != nil {
-			return fmt.Errorf("failed to addPullPerm: %w", err)
+			return fmt.Errorf("failed to addMaintainPerm: %w", err)
 		}
 	}
 
@@ -159,6 +159,20 @@ func (r *RepositoryReconciler) EditRepoCollaboraters(ctx context.Context, repo *
 		err := addPushPerm(ctx, repo, ghClient, pushUser, allMembers, reqLogger)
 		if err != nil {
 			return fmt.Errorf("failed to addPushPerm: %w", err)
+		}
+	}
+
+	for _, pullUser := range repo.Spec.RepositoryCollaborators.PullPermission {
+		err := addPullPerm(ctx, repo, ghClient, pullUser, allMembers, reqLogger)
+		if err != nil {
+			return fmt.Errorf("failed to addPullPerm: %w", err)
+		}
+	}
+
+	for _, triageUser := range repo.Spec.RepositoryCollaborators.TriagePermission {
+		err := addTriagePerm(ctx, repo, ghClient, triageUser, allMembers, reqLogger)
+		if err != nil {
+			return fmt.Errorf("failed to addTriagePerm: %w", err)
 		}
 	}
 
@@ -279,6 +293,86 @@ func addPushPerm(ctx context.Context, repo *settingsv1beta1.Repository, ghClient
 		reqLogger.Info("gave " + pushUser + " push permission")
 	} else {
 		reqLogger.Info(pushUser + " is not a part of the " + repo.Spec.Organization + " org")
+	}
+
+	return nil
+}
+
+func addMaintainPerm(ctx context.Context, repo *settingsv1beta1.Repository, ghClient *github.Client, maintainUser string, allMembers []*github.User, reqLogger logr.Logger) error {
+	permLevel, _, err := ghClient.Repositories.GetPermissionLevel(ctx, repo.Spec.Organization, repo.GetName(), maintainUser)
+	if err != nil {
+		if strings.Contains(err.Error(), "is not a user []") {
+			reqLogger.Error(err, "not a user")
+			return nil
+		}
+		return fmt.Errorf("failed to get perm level for repo: %w", err)
+	}
+
+	if permLevel.GetPermission() == "admin" {
+		reqLogger.Info(maintainUser + " already has maintainer permission")
+		return nil
+	}
+
+	add := false
+
+	for _, member := range allMembers {
+		// only add if user is actually a part of the org
+		if member.GetLogin() == maintainUser {
+			add = true
+			break
+		}
+	}
+
+	if add {
+		_, _, err = ghClient.Repositories.AddCollaborator(ctx, repo.Spec.Organization, repo.GetName(), maintainUser, &github.RepositoryAddCollaboratorOptions{
+			Permission: "maintain",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add push collaborator for repo: %w", err)
+		}
+		reqLogger.Info("gave " + maintainUser + " maintainer permission")
+	} else {
+		reqLogger.Info(maintainUser + " is not a part of the " + repo.Spec.Organization + " org")
+	}
+
+	return nil
+}
+
+func addTriagePerm(ctx context.Context, repo *settingsv1beta1.Repository, ghClient *github.Client, triageUser string, allMembers []*github.User, reqLogger logr.Logger) error {
+	permLevel, _, err := ghClient.Repositories.GetPermissionLevel(ctx, repo.Spec.Organization, repo.GetName(), triageUser)
+	if err != nil {
+		if strings.Contains(err.Error(), "is not a user []") {
+			reqLogger.Error(err, "not a user")
+			return nil
+		}
+		return fmt.Errorf("failed to get perm level for repo: %w", err)
+	}
+
+	if permLevel.GetPermission() == "read" || permLevel.GetPermission() == "admin" || permLevel.GetPermission() == "write" {
+		reqLogger.Info(triageUser + " already has triage permission")
+		return nil
+	}
+
+	add := false
+
+	for _, member := range allMembers {
+		// only add if user is actually a part of the org
+		if member.GetLogin() == triageUser {
+			add = true
+			break
+		}
+	}
+
+	if add {
+		_, _, err = ghClient.Repositories.AddCollaborator(ctx, repo.Spec.Organization, repo.GetName(), triageUser, &github.RepositoryAddCollaboratorOptions{
+			Permission: "triage",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add push collaborator for repo: %w", err)
+		}
+		reqLogger.Info("gave " + triageUser + " triage permission")
+	} else {
+		reqLogger.Info(triageUser + " is not a part of the " + repo.Spec.Organization + " org")
 	}
 
 	return nil

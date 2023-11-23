@@ -73,9 +73,11 @@ type RepositorySpec struct {
 }
 
 type RepositoryCollaborators struct {
-	PushPermission  []string `json:"pushPermission,omitempty"`
-	PullPermission  []string `json:"pullPermission,omitempty"`
-	AdminPermission []string `json:"adminPermission,omitempty"`
+	PushPermission     []string `json:"pushPermission,omitempty"`
+	PullPermission     []string `json:"pullPermission,omitempty"`
+	AdminPermission    []string `json:"adminPermission,omitempty"`
+	MaintainPermission []string `json:"maintainPermission,omitempty"`
+	TriagePermission   []string `json:"triagePermission,omitempty"`
 }
 
 // RepositoryStatus defines the observed state of Repository

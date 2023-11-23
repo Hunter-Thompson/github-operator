@@ -38,7 +38,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: hunterthompson/github-operator:v1.3.0
+        image: hunterthompson/github-operator:v1.5.0
         name: manager
         envFrom:
         - secretRef:

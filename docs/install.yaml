@@ -109,11 +109,19 @@ spec:
                     items:
                       type: string
                     type: array
+                  maintainPermission:
+                    items:
+                      type: string
+                    type: array
                   pullPermission:
                     items:
                       type: string
                     type: array
                   pushPermission:
+                    items:
+                      type: string
+                    type: array
+                  triagePermission:
                     items:
                       type: string
                     type: array
@@ -327,11 +335,19 @@ spec:
                     items:
                       type: string
                     type: array
+                  maintainPermission:
+                    items:
+                      type: string
+                    type: array
                   pullPermission:
                     items:
                       type: string
                     type: array
                   pushPermission:
+                    items:
+                      type: string
+                    type: array
+                  triagePermission:
                     items:
                       type: string
                     type: array
@@ -726,7 +742,7 @@ spec:
         envFrom:
         - secretRef:
             name: github-operator-secret
-        image: hunterthompson/github-operator:v1.4.0
+        image: hunterthompson/github-operator:v1.5.0
         livenessProbe:
           httpGet:
             path: /healthz
